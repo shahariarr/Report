@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BPEL Sales Performance Report - TV Showcase</title>
+  <link rel="preload" as="image" href="BPEL_Sales_Report_Amounts_Masked.png">
+
+  <style>
+    /* CSS Variables & Theme Definitions */
+    :root {
+      --bg-gradient: radial-gradient(circle at 50% 45%, #152642 0%, #0d1728 55%, #070d18 100%);
+      --bg-glow: rgba(40, 118, 185, 0.22);
+      --shadow-report: 0 25px 60px -15px rgba(0, 0, 0, 0.65), 0 0 35px rgba(40, 118, 185, 0.18);
+    }
+
+    [data-theme="light"] {
+      --bg-gradient: radial-gradient(circle at 50% 50%, #f8fafc 0%, #edf2f7 60%, #e2e8f0 100%);
+      --bg-glow: rgba(40, 118, 185, 0.08);
+      --shadow-report: 0 20px 45px -10px rgba(16, 59, 104, 0.15), 0 0 20px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Global Reset & Viewport Lock */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: var(--bg-gradient);
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-font-smoothing: antialiased;
+      transition: background 600ms ease;
+    }
+
+    /* Auto-hide cursor when mouse is idle on TV display */
+    body.hide-cursor {
+      cursor: none;
+    }
+
+    /* Ambient TV Backlight Glow (Studio lighting effect) */
+    .ambient-glow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80vw;
+      height: 80vh;
+      background: radial-gradient(ellipse at center, var(--bg-glow) 0%, transparent 70%);
+      filter: blur(90px);
+      pointer-events: none;
+      z-index: 0;
+      animation: pulseGlow 8s ease-in-out infinite alternate;
+    }
+
+    @keyframes pulseGlow {
+      0% { opacity: 0.6; transform: translate(-50%, -50%) scale(0.95); }
+      100% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+    }
+
+    /* Main Showcase Stage */
+    .showcase-stage {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1;
+    }
+
+    /* Slide Layer */
+    .slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      will-change: transform;
+      transform: translate3d(0, 0, 0);
+    }
+
+    /* Core Report Image Constraints: 100% visible, no crop, aspect-ratio preserved */
+    .slide img {
+      width: 100vw;
+      height: 100vh;
+      object-fit: contain;
+      display: block;
+      pointer-events: none;
+      image-rendering: high-quality;
+      filter: var(--shadow-report);
+      transition: filter 500ms ease;
+    }
+
+    /* Initial Slide States */
+    #slide-a {
+      transform: translate3d(0, 0, 0) scale(1);
+      z-index: 2;
+    }
+
+    #slide-b {
+      transform: translate3d(100vw, 0, 0) scale(0.98);
+      z-index: 1;
+    }
+
+    /* Smooth Cinematic Sliding Transition */
+    .slide.animating {
+      transition: transform 1200ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Minimal Bottom Glowing Progress Bar (10s Countdown) */
+    .progress-track {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100vw;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.05);
+      overflow: hidden;
+      z-index: 10;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #2876b9 0%, #38bdf8 50%, #10b981 100%);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.8);
+      transition: width 100ms linear;
+    }
+
+    /* Sleek TV Toast Feedback (Shown briefly on key press) */
+    .tv-toast {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.9);
+      background: rgba(13, 23, 40, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      padding: 14px 28px;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: system-ui, -apple-system, sans-serif;
+      letter-spacing: 0.04em;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 250ms cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 50;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    .tv-toast.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient TV Backlight Glow -->
+  <div class="ambient-glow"></div>
+
+  <!-- Showcase Stage -->
+  <div class="showcase-stage" id="showcase">
+    <!-- Slide A -->
+    <div class="slide" id="slide-a">
+      <img src="BPEL_Sales_Report_Amounts_Masked.png" alt="BPEL Sales Performance Report">
+    </div>
+
+    <!-- Slide B (Standby Slide for seamless transition) -->
+    <div class="slide" id="slide-b">
+      <img src="BPEL_Sales_Report_Amounts_Masked.png" alt="BPEL Sales Performance Report">
+    </div>
+  </div>
+
+  <!-- Bottom Glowing Progress Bar -->
+  <div class="progress-track" id="progress-track">
+    <div class="progress-fill" id="progress-fill"></div>
+  </div>
+
+  <!-- Temporary Toast Notification for TV Feedback -->
+  <div class="tv-toast" id="tv-toast">
+    <span id="toast-text">Toast Message</span>
+  </div>
+
+  <script>
+    (function () {
+      const slideA = document.getElementById('slide-a');
+      const slideB = document.getElementById('slide-b');
+      const progressFill = document.getElementById('progress-fill');
+      const toast = document.getElementById('tv-toast');
+      const toastText = document.getElementById('toast-text');
+
+      let currentSlide = slideA;
+      let nextSlide = slideB;
+      let slideDirection = 'left'; // Alternates: left -> right -> left
+      const SLIDE_INTERVAL = 10000; // 10 seconds
+      const ANIMATION_DURATION = 1200; // 1.2s smooth slide
+
+      let isPaused = false;
+      let isAnimating = false;
+      let startTime = performance.now();
+      let animFrameId = null;
+
+      // Toast Notification Helper
+      let toastTimeout;
+      function showToast(message) {
+        toastText.textContent = message;
+        toast.classList.add('show');
+        clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => {
+          toast.classList.remove('show');
+        }, 1500);
+      }
+
+      // Smooth Sliding Animation Function (Left & Right Alternating)
+      function performSlide(manualDirection = null) {
+        if (isAnimating) return;
+        isAnimating = true;
+
+        const dir = manualDirection || slideDirection;
+
+        if (dir === 'left') {
+          // Slide to Left: Next enters from Right (+100vw -> 0)
+          nextSlide.classList.remove('animating');
+          nextSlide.style.transform = 'translate3d(100vw, 0, 0) scale(0.98)';
+          nextSlide.style.zIndex = '2';
+          currentSlide.style.zIndex = '1';
+
+          void nextSlide.offsetWidth; // Force Reflow
+
+          currentSlide.classList.add('animating');
+          nextSlide.classList.add('animating');
+
+          currentSlide.style.transform = 'translate3d(-100vw, 0, 0) scale(0.98)';
+          nextSlide.style.transform = 'translate3d(0, 0, 0) scale(1)';
+
+          slideDirection = 'right';
+        } else {
+          // Slide to Right: Next enters from Left (-100vw -> 0)
+          nextSlide.classList.remove('animating');
+          nextSlide.style.transform = 'translate3d(-100vw, 0, 0) scale(0.98)';
+          nextSlide.style.zIndex = '2';
+          currentSlide.style.zIndex = '1';
+
+          void nextSlide.offsetWidth; // Force Reflow
+
+          currentSlide.classList.add('animating');
+          nextSlide.classList.add('animating');
+
+          currentSlide.style.transform = 'translate3d(100vw, 0, 0) scale(0.98)';
+          nextSlide.style.transform = 'translate3d(0, 0, 0) scale(1)';
+
+          slideDirection = 'left';
+        }
+
+        setTimeout(() => {
+          currentSlide.classList.remove('animating');
+          nextSlide.classList.remove('animating');
+
+          // Swap references
+          const temp = currentSlide;
+          currentSlide = nextSlide;
+          nextSlide = temp;
+
+          isAnimating = false;
+          startTime = performance.now();
+        }, ANIMATION_DURATION + 50);
+      }
+
+      // Progress Bar & 10s Timer Loop
+      function tick(now) {
+        if (!isPaused && !isAnimating) {
+          const elapsed = now - startTime;
+          const progress = Math.min((elapsed / SLIDE_INTERVAL) * 100, 100);
+          progressFill.style.width = progress + '%';
+
+          if (elapsed >= SLIDE_INTERVAL) {
+            progressFill.style.width = '100%';
+            performSlide();
+          }
+        }
+        animFrameId = requestAnimationFrame(tick);
+      }
+      animFrameId = requestAnimationFrame(tick);
+
+      // Toggle Pause/Resume (Space key)
+      function togglePause() {
+        isPaused = !isPaused;
+        if (isPaused) {
+          showToast('⏸ PAUSED');
+        } else {
+          showToast('▶ PLAYING');
+          startTime = performance.now();
+        }
+      }
+
+      // Toggle Fullscreen (F key or Double Click)
+      function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().then(() => {
+            showToast('⛶ Fullscreen');
+          }).catch(() => {});
+        } else if (document.exitFullscreen) {
+          document.exitFullscreen().then(() => {
+            showToast('Exit Fullscreen');
+          }).catch(() => {});
+        }
+      }
+
+      // Toggle Theme: Dark Executive vs Clean Light (T key)
+      let currentTheme = 'dark';
+      function toggleTheme() {
+        currentTheme = (currentTheme === 'dark') ? 'light' : 'dark';
+        if (currentTheme === 'light') {
+          document.documentElement.setAttribute('data-theme', 'light');
+          showToast('☀️ Clean Light Theme');
+        } else {
+          document.documentElement.removeAttribute('data-theme');
+          showToast('🌙 Executive Dark Theme');
+        }
+      }
+
+      // Keyboard & TV Remote Listeners
+      document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space') {
+          e.preventDefault();
+          togglePause();
+        } else if (e.key === 'f' || e.key === 'F') {
+          toggleFullScreen();
+        } else if (e.key === 't' || e.key === 'T') {
+          toggleTheme();
+        } else if (e.key === 'ArrowRight') {
+          performSlide('left');
+          startTime = performance.now();
+          showToast('➡ Next Slide');
+        } else if (e.key === 'ArrowLeft') {
+          performSlide('right');
+          startTime = performance.now();
+          showToast('⬅ Previous Slide');
+        }
+      });
+
+      // Double Click toggles Fullscreen
+      document.addEventListener('dblclick', toggleFullScreen);
+
+      // Auto-hide mouse pointer after 2.5s inactivity
+      let cursorTimeout;
+      function resetCursor() {
+        document.body.classList.remove('hide-cursor');
+        clearTimeout(cursorTimeout);
+        cursorTimeout = setTimeout(() => {
+          document.body.classList.add('hide-cursor');
+        }, 2500);
+      }
+      window.addEventListener('mousemove', resetCursor);
+      window.addEventListener('mousedown', resetCursor);
+      resetCursor();
+
+      // Visibility API: Pause when tab is unfocused/TV sleeps
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          isPaused = true;
+        } else {
+          isPaused = false;
+          startTime = performance.now();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

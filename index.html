@@ -3,24 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BPEL Sales Performance Report - TV Showcase</title>
-  <link rel="preload" as="image" href="BPEL_Sales_Report_Amounts_Masked.png">
+  <title>HKD International(CEPZ) Ltd_2000 kVA Substation(off load) - BPEL TV Showcase</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
   <style>
     /* CSS Variables & Theme Definitions */
     :root {
-      --bg-gradient: radial-gradient(circle at 50% 45%, #152642 0%, #0d1728 55%, #070d18 100%);
-      --bg-glow: rgba(40, 118, 185, 0.22);
-      --shadow-report: 0 25px 60px -15px rgba(0, 0, 0, 0.65), 0 0 35px rgba(40, 118, 185, 0.18);
+      --bg-base: #060a12;
+      --header-bg: rgba(9, 15, 26, 0.82);
+      --header-border: rgba(255, 255, 255, 0.10);
+      --text-main: #ffffff;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --shadow-photo: 0 25px 60px -10px rgba(0, 0, 0, 0.8), 0 0 35px rgba(0, 0, 0, 0.5);
+      --font-main: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
     }
 
-    [data-theme="light"] {
-      --bg-gradient: radial-gradient(circle at 50% 50%, #f8fafc 0%, #edf2f7 60%, #e2e8f0 100%);
-      --bg-glow: rgba(40, 118, 185, 0.08);
-      --shadow-report: 0 20px 45px -10px rgba(16, 59, 104, 0.15), 0 0 20px rgba(0, 0, 0, 0.05);
-    }
-
-    /* Global Reset & Viewport Lock */
+    /* Global Reset */
     *, *::before, *::after {
       margin: 0;
       padding: 0;
@@ -31,48 +33,177 @@
       width: 100vw;
       height: 100vh;
       overflow: hidden;
-      background: var(--bg-gradient);
+      background-color: var(--bg-base);
+      font-family: var(--font-main);
+      color: var(--text-main);
       user-select: none;
       -webkit-user-select: none;
       -webkit-font-smoothing: antialiased;
-      transition: background 600ms ease;
     }
 
-    /* Auto-hide cursor when mouse is idle on TV display */
     body.hide-cursor {
       cursor: none;
     }
 
-    /* Ambient TV Backlight Glow (Studio lighting effect) */
-    .ambient-glow {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 80vw;
-      height: 80vh;
-      background: radial-gradient(ellipse at center, var(--bg-glow) 0%, transparent 70%);
-      filter: blur(90px);
-      pointer-events: none;
-      z-index: 0;
-      animation: pulseGlow 8s ease-in-out infinite alternate;
-    }
-
-    @keyframes pulseGlow {
-      0% { opacity: 0.6; transform: translate(-50%, -50%) scale(0.95); }
-      100% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
-    }
-
-    /* Main Showcase Stage */
-    .showcase-stage {
-      position: relative;
+    /* Main App Shell */
+    .app-shell {
+      display: flex;
+      flex-direction: column;
       width: 100vw;
       height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* --- Background Systems --- */
+    
+    /* 1. Dynamic Ambient Blurred Photo Backdrops (Chromecast / Apple TV Style) */
+    .ambient-bg-layer {
+      position: absolute;
+      inset: -30px;
+      overflow: hidden;
+      z-index: 0;
+      pointer-events: none;
+      transition: opacity 600ms ease;
+    }
+
+    .ambient-bg {
+      position: absolute;
+      inset: -30px;
+      background-size: cover;
+      background-position: center;
+      filter: blur(55px) saturate(145%) brightness(0.32);
+      transform: scale(1.15);
+      opacity: 0;
+      transition: opacity 1200ms cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: opacity;
+    }
+
+    .ambient-bg.active {
+      opacity: 1;
+    }
+
+    /* 2. Studio Vignette (Adds depth and contrast around the center photo) */
+    .studio-vignette {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(8, 14, 25, 0.35) 0%, rgba(4, 7, 14, 0.88) 100%),
+                  linear-gradient(to bottom, rgba(5, 9, 18, 0.5) 0%, transparent 15%, transparent 85%, rgba(5, 9, 18, 0.8) 100%);
+      z-index: 1;
+      pointer-events: none;
+      transition: opacity 600ms ease;
+    }
+
+    /* 3. Studio Navy Gradient Fallback (Mode 2) */
+    .studio-gradient {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 45%, #152642 0%, #0d1728 55%, #070d18 100%);
+      opacity: 0;
+      z-index: 0;
+      pointer-events: none;
+      transition: opacity 600ms ease;
+    }
+
+    /* Background Modes: Ambient (Default), Studio Gradient, Minimal Dark */
+    body[data-bg="gradient"] .ambient-bg-layer { opacity: 0; }
+    body[data-bg="gradient"] .studio-gradient { opacity: 1; }
+
+    body[data-bg="dark"] .ambient-bg-layer { opacity: 0; }
+    body[data-bg="dark"] .studio-vignette { opacity: 0; }
+    body[data-bg="dark"] { background: #070a10; }
+
+    /* --- Top Professional Header --- */
+    .top-header {
+      height: 64px;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--header-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--header-border);
+      z-index: 20;
+      flex-shrink: 0;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+    }
+
+    .title-group {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .logo-box {
+      height: 44px;
+      padding: 3px 10px;
+      background: #ffffff;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      flex-shrink: 0;
+    }
+
+    .brand-logo {
+      height: 38px;
+      width: auto;
+      object-fit: contain;
+      display: block;
+    }
+
+    .main-title {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sub-spec {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.07);
+      padding: 4px 12px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .slide-counter {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.06);
+      padding: 5px 14px;
+      border-radius: 9999px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      letter-spacing: 0.05em;
+    }
+
+    /* --- Showcase Stage --- */
+    .showcase-stage {
+      flex: 1;
+      position: relative;
+      width: 100vw;
+      height: calc(100vh - 64px);
       overflow: hidden;
       display: flex;
       justify-content: center;
       align-items: center;
-      z-index: 1;
+      z-index: 5;
     }
 
     /* Slide Layer */
@@ -80,24 +211,29 @@
       position: absolute;
       top: 0;
       left: 0;
-      width: 100vw;
-      height: 100vh;
+      width: 100%;
+      height: 100%;
       display: flex;
       justify-content: center;
       align-items: center;
       will-change: transform;
       transform: translate3d(0, 0, 0);
+      padding: 16px 28px;
     }
 
-    /* Core Report Image Constraints: 100% visible, no crop, aspect-ratio preserved */
+    /* Photo Display Constraints: 100% visible, no crop, aspect-ratio preserved */
     .slide img {
-      width: 100vw;
-      height: 100vh;
+      max-width: 100%;
+      max-height: 100%;
+      width: 100%;
+      height: 100%;
       object-fit: contain;
       display: block;
       pointer-events: none;
       image-rendering: high-quality;
-      filter: var(--shadow-report);
+      filter: var(--shadow-photo);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 8px;
       transition: filter 500ms ease;
     }
 
@@ -124,9 +260,9 @@
       left: 0;
       width: 100vw;
       height: 3px;
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.06);
       overflow: hidden;
-      z-index: 10;
+      z-index: 15;
     }
 
     .progress-fill {
@@ -137,21 +273,20 @@
       transition: width 100ms linear;
     }
 
-    /* Sleek TV Toast Feedback (Shown briefly on key press) */
+    /* Sleek TV Toast Feedback */
     .tv-toast {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%) scale(0.9);
-      background: rgba(13, 23, 40, 0.85);
+      background: rgba(13, 23, 40, 0.90);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.2);
       padding: 14px 28px;
       border-radius: 14px;
       font-size: 15px;
       font-weight: 600;
-      font-family: system-ui, -apple-system, sans-serif;
       letter-spacing: 0.04em;
       color: #fff;
       display: flex;
@@ -161,7 +296,7 @@
       pointer-events: none;
       transition: all 250ms cubic-bezier(0.16, 1, 0.3, 1);
       z-index: 50;
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
     }
 
     .tv-toast.show {
@@ -172,25 +307,54 @@
 </head>
 <body>
 
-  <!-- Ambient TV Backlight Glow -->
-  <div class="ambient-glow"></div>
-
-  <!-- Showcase Stage -->
-  <div class="showcase-stage" id="showcase">
-    <!-- Slide A -->
-    <div class="slide" id="slide-a">
-      <img src="BPEL_Sales_Report_Amounts_Masked.png" alt="BPEL Sales Performance Report">
+  <!-- App Shell -->
+  <div class="app-shell">
+    
+    <!-- 1. Dynamic Blurred Ambient Photo Backdrop Layers -->
+    <div class="ambient-bg-layer" id="ambient-layer">
+      <div class="ambient-bg active" id="bg-a" style="background-image: url('images/bpel_photo_01.jpg');"></div>
+      <div class="ambient-bg" id="bg-b" style="background-image: url('images/bpel_photo_02.jpg');"></div>
     </div>
 
-    <!-- Slide B (Standby Slide for seamless transition) -->
-    <div class="slide" id="slide-b">
-      <img src="BPEL_Sales_Report_Amounts_Masked.png" alt="BPEL Sales Performance Report">
-    </div>
-  </div>
+    <!-- 2. Studio Vignette Overlay -->
+    <div class="studio-vignette"></div>
 
-  <!-- Bottom Glowing Progress Bar -->
-  <div class="progress-track" id="progress-track">
-    <div class="progress-fill" id="progress-fill"></div>
+    <!-- 3. Studio Gradient Layer (Mode 2) -->
+    <div class="studio-gradient"></div>
+
+    <!-- Top Professional Header -->
+    <header class="top-header">
+      <div class="title-group">
+        <div class="logo-box">
+          <img src="images/bpel_logo.png" alt="BPEL Logo" class="brand-logo">
+        </div>
+        <div class="main-title">
+          <span>HKD International (CEPZ) Ltd.</span>
+          <span class="sub-spec">2000 kVA Substation (Off-Load)</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <span class="slide-counter" id="slide-counter">01 / 10</span>
+      </div>
+    </header>
+
+    <!-- Showcase Stage -->
+    <main class="showcase-stage" id="showcase">
+      <!-- Slide A -->
+      <div class="slide" id="slide-a">
+        <img id="img-a" src="images/bpel_photo_01.jpg" alt="HKD International 2000 kVA Substation">
+      </div>
+
+      <!-- Slide B (Standby Slide for seamless transition) -->
+      <div class="slide" id="slide-b">
+        <img id="img-b" src="images/bpel_photo_02.jpg" alt="HKD International 2000 kVA Substation">
+      </div>
+    </main>
+
+    <!-- Bottom Glowing Progress Bar -->
+    <div class="progress-track" id="progress-track">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
   </div>
 
   <!-- Temporary Toast Notification for TV Feedback -->
@@ -200,14 +364,45 @@
 
   <script>
     (function () {
+      // 10 Photos of HKD International(CEPZ) Ltd 2000 kVA Substation
+      const imageList = [
+        "images/bpel_photo_01.jpg",
+        "images/bpel_photo_02.jpg",
+        "images/bpel_photo_03.jpg",
+        "images/bpel_photo_04.jpg",
+        "images/bpel_photo_05.jpg",
+        "images/bpel_photo_06.jpg",
+        "images/bpel_photo_07.jpg",
+        "images/bpel_photo_08.jpg",
+        "images/bpel_photo_09.jpg",
+        "images/bpel_photo_10.jpg"
+      ];
+
+      // Preload images into memory
+      imageList.forEach(src => {
+        const img = new Image();
+        img.src = src;
+      });
+
       const slideA = document.getElementById('slide-a');
       const slideB = document.getElementById('slide-b');
+      const imgA = document.getElementById('img-a');
+      const imgB = document.getElementById('img-b');
+      const bgA = document.getElementById('bg-a');
+      const bgB = document.getElementById('bg-b');
       const progressFill = document.getElementById('progress-fill');
+      const counterEl = document.getElementById('slide-counter');
       const toast = document.getElementById('tv-toast');
       const toastText = document.getElementById('toast-text');
 
       let currentSlide = slideA;
       let nextSlide = slideB;
+      let currentImg = imgA;
+      let nextImg = imgB;
+      let currentBg = bgA;
+      let nextBg = bgB;
+
+      let currentIndex = 0;
       let slideDirection = 'left'; // Alternates: left -> right -> left
       const SLIDE_INTERVAL = 10000; // 10 seconds
       const ANIMATION_DURATION = 1200; // 1.2s smooth slide
@@ -216,6 +411,12 @@
       let isAnimating = false;
       let startTime = performance.now();
       let animFrameId = null;
+
+      function updateCounter(index) {
+        const current = String(index + 1).padStart(2, '0');
+        const total = String(imageList.length).padStart(2, '0');
+        counterEl.textContent = isPaused ? `PAUSED • ${current} / ${total}` : `${current} / ${total}`;
+      }
 
       // Toast Notification Helper
       let toastTimeout;
@@ -228,15 +429,33 @@
         }, 1500);
       }
 
-      // Smooth Sliding Animation Function (Left & Right Alternating)
-      function performSlide(manualDirection = null) {
+      // Smooth Sliding Animation Function
+      function performSlide(manualDirection = null, targetIndex = null) {
         if (isAnimating) return;
         isAnimating = true;
+
+        // Determine next image index
+        let nextIndex;
+        if (targetIndex !== null) {
+          nextIndex = (targetIndex + imageList.length) % imageList.length;
+        } else if (manualDirection === 'right') {
+          nextIndex = (currentIndex - 1 + imageList.length) % imageList.length;
+        } else {
+          nextIndex = (currentIndex + 1) % imageList.length;
+        }
+
+        // Prepare incoming foreground image & ambient background
+        nextImg.src = imageList[nextIndex];
+        nextBg.style.backgroundImage = `url('${imageList[nextIndex]}')`;
+
+        // Cross-fade ambient background synchronously
+        currentBg.classList.remove('active');
+        nextBg.classList.add('active');
 
         const dir = manualDirection || slideDirection;
 
         if (dir === 'left') {
-          // Slide to Left: Next enters from Right (+100vw -> 0)
+          // Slide towards Left (Next enters from Right)
           nextSlide.classList.remove('animating');
           nextSlide.style.transform = 'translate3d(100vw, 0, 0) scale(0.98)';
           nextSlide.style.zIndex = '2';
@@ -250,9 +469,9 @@
           currentSlide.style.transform = 'translate3d(-100vw, 0, 0) scale(0.98)';
           nextSlide.style.transform = 'translate3d(0, 0, 0) scale(1)';
 
-          slideDirection = 'right';
+          if (!manualDirection) slideDirection = 'right';
         } else {
-          // Slide to Right: Next enters from Left (-100vw -> 0)
+          // Slide towards Right (Next enters from Left)
           nextSlide.classList.remove('animating');
           nextSlide.style.transform = 'translate3d(-100vw, 0, 0) scale(0.98)';
           nextSlide.style.zIndex = '2';
@@ -266,18 +485,28 @@
           currentSlide.style.transform = 'translate3d(100vw, 0, 0) scale(0.98)';
           nextSlide.style.transform = 'translate3d(0, 0, 0) scale(1)';
 
-          slideDirection = 'left';
+          if (!manualDirection) slideDirection = 'left';
         }
 
         setTimeout(() => {
           currentSlide.classList.remove('animating');
           nextSlide.classList.remove('animating');
 
-          // Swap references
-          const temp = currentSlide;
+          // Swap slide references
+          const tempSlide = currentSlide;
           currentSlide = nextSlide;
-          nextSlide = temp;
+          nextSlide = tempSlide;
 
+          const tempImg = currentImg;
+          currentImg = nextImg;
+          nextImg = tempImg;
+
+          const tempBg = currentBg;
+          currentBg = nextBg;
+          nextBg = tempBg;
+
+          currentIndex = nextIndex;
+          updateCounter(currentIndex);
           isAnimating = false;
           startTime = performance.now();
         }, ANIMATION_DURATION + 50);
@@ -302,8 +531,9 @@
       // Toggle Pause/Resume (Space key)
       function togglePause() {
         isPaused = !isPaused;
+        updateCounter(currentIndex);
         if (isPaused) {
-          showToast('⏸ PAUSED');
+          showToast(`⏸ PAUSED (${currentIndex + 1}/${imageList.length})`);
         } else {
           showToast('▶ PLAYING');
           startTime = performance.now();
@@ -323,16 +553,21 @@
         }
       }
 
-      // Toggle Theme: Dark Executive vs Clean Light (T key)
-      let currentTheme = 'dark';
-      function toggleTheme() {
-        currentTheme = (currentTheme === 'dark') ? 'light' : 'dark';
-        if (currentTheme === 'light') {
-          document.documentElement.setAttribute('data-theme', 'light');
-          showToast('☀️ Clean Light Theme');
-        } else {
-          document.documentElement.removeAttribute('data-theme');
-          showToast('🌙 Executive Dark Theme');
+      // Cycle Background Modes (B key)
+      const bgModes = ['ambient', 'gradient', 'dark'];
+      let bgModeIndex = 0;
+      function cycleBgMode() {
+        bgModeIndex = (bgModeIndex + 1) % bgModes.length;
+        const mode = bgModes[bgModeIndex];
+        if (mode === 'ambient') {
+          document.body.removeAttribute('data-bg');
+          showToast('🌟 Ambient Glow Background');
+        } else if (mode === 'gradient') {
+          document.body.setAttribute('data-bg', 'gradient');
+          showToast('🎨 Executive Studio Gradient');
+        } else if (mode === 'dark') {
+          document.body.setAttribute('data-bg', 'dark');
+          showToast('⬛ Minimal Dark Background');
         }
       }
 
@@ -343,16 +578,14 @@
           togglePause();
         } else if (e.key === 'f' || e.key === 'F') {
           toggleFullScreen();
-        } else if (e.key === 't' || e.key === 'T') {
-          toggleTheme();
+        } else if (e.key === 'b' || e.key === 'B') {
+          cycleBgMode();
         } else if (e.key === 'ArrowRight') {
           performSlide('left');
           startTime = performance.now();
-          showToast('➡ Next Slide');
         } else if (e.key === 'ArrowLeft') {
           performSlide('right');
           startTime = performance.now();
-          showToast('⬅ Previous Slide');
         }
       });
 
@@ -376,11 +609,16 @@
       document.addEventListener('visibilitychange', () => {
         if (document.hidden) {
           isPaused = true;
+          updateCounter(currentIndex);
         } else {
           isPaused = false;
+          updateCounter(currentIndex);
           startTime = performance.now();
         }
       });
+
+      // Initialize counter
+      updateCounter(currentIndex);
     })();
   </script>
 </body>
